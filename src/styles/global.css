@@ -137,6 +137,10 @@ input:focus-visible, textarea:focus-visible, .btn:focus-visible, a:focus-visible
 .detail-head { margin-top: 24px; }
 .detail-head h2, .place h2 { margin: 0; font-size: 1.1rem; }
 .place-list { display: grid; gap: 14px; }
+.place-title-row, .place-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.place-actions { justify-content: flex-start; flex-wrap: wrap; }
+.danger-mini { color: var(--danger); }
+.danger-mini:hover { background: #ead8d4; color: var(--danger); border-color: #c79a92; }
 .place p { margin: 6px 0 0; overflow-wrap: anywhere; }
 .thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; margin-top: 10px; }
 .thumb { margin: 0; display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }

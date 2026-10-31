@@ -46,7 +46,7 @@ export default function DayTable({ blocks, date, readOnly, onChange }: Props) {
                     b.event && (
                       <Link to={detail} className="cell-link" aria-label={`${label} ${b.event}，查看详情`}>
                         {b.event}
-                        {b.places.length > 0 && <small className="badge">{b.places.length} 个备选</small>}
+                        {b.places.length > 0 && <small className="badge">{b.places.length} 个详情</small>}
                       </Link>
                     )
                   ) : (
@@ -60,7 +60,7 @@ export default function DayTable({ blocks, date, readOnly, onChange }: Props) {
                       />
                       {b.event.trim() && (
                         <Link to={detail} className="detail-link">
-                          打开详情{b.places.length > 0 ? `（${b.places.length} 个备选）` : ''} →
+                          打开详情{b.places.length > 0 ? `（${b.places.length} 个详情）` : ''} →
                         </Link>
                       )}
                     </>

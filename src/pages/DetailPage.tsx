@@ -7,13 +7,15 @@ import { isUrl, newPlace, timeLabel, type Block, type Place } from '../lib/plan'
 type PlaceCardProps = {
   place: Place
   readOnly: boolean
+  startEditing?: boolean
   onChange: (p: Place) => void
   onRemove: () => void
 }
 
-function PlaceCard({ place, readOnly, onChange, onRemove }: PlaceCardProps) {
+function PlaceCard({ place, readOnly, startEditing = false, onChange, onRemove }: PlaceCardProps) {
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
+  const [isEditing, setIsEditing] = useState(startEditing)
   const set = (patch: Partial<Place>) => onChange({ ...place, ...patch })
 
   async function upload(files: FileList | null) {
@@ -33,9 +35,9 @@ function PlaceCard({ place, readOnly, onChange, onRemove }: PlaceCardProps) {
   const images = place.images.map((src, i) => (
     <figure key={src} className="thumb">
       <a href={src} target="_blank" rel="noopener noreferrer">
-        <img src={src} alt={`${place.name || '备选'} 图片 ${i + 1}`} loading="lazy" />
+        <img src={src} alt={`${place.name || '详情'} 图片 ${i + 1}`} loading="lazy" />
       </a>
-      {!readOnly && (
+      {isEditing && (
         <button
           type="button"
           className="mini"
@@ -48,10 +50,22 @@ function PlaceCard({ place, readOnly, onChange, onRemove }: PlaceCardProps) {
     </figure>
   ))
 
-  if (readOnly) {
+  if (readOnly || !isEditing) {
     return (
       <article className="card place">
-        <h2>{place.name || '未命名'}</h2>
+        <div className="place-title-row">
+          <h2>{place.name || '未命名详情'}</h2>
+          {!readOnly && (
+            <div className="place-actions">
+              <button type="button" className="mini" onClick={() => setIsEditing(true)}>
+                编辑
+              </button>
+              <button type="button" className="mini danger-mini" onClick={onRemove}>
+                删除
+              </button>
+            </div>
+          )}
+        </div>
         {place.address && (
           <p>
             <a
@@ -102,9 +116,14 @@ function PlaceCard({ place, readOnly, onChange, onRemove }: PlaceCardProps) {
         {busy && <span className="muted" role="status">上传中…</span>}
         {err && <p className="error" role="alert">{err}</p>}
         {images.length > 0 && <div className="thumbs">{images}</div>}
-        <button type="button" className="btn btn-ghost" onClick={onRemove}>
-          删除此备选
-        </button>
+        <div className="place-actions">
+          <button type="button" className="btn btn-ghost" onClick={() => setIsEditing(false)}>
+            完成
+          </button>
+          <button type="button" className="mini danger-mini" onClick={onRemove}>
+            删除此详情
+          </button>
+        </div>
       </div>
     </article>
   )
@@ -140,15 +159,15 @@ export default function DetailPage() {
       {block.note && <p className="cell-text">{block.note}</p>}
 
       <div className="row detail-head">
-        <h2>备选（{block.places.length}）</h2>
+        <h2>详情（{block.places.length}）</h2>
         {editing && (
           <button type="button" className="btn" onClick={() => setBlock({ places: [...block.places, newPlace()] })}>
-            添加备选
+            ＋ 添加详情
           </button>
         )}
       </div>
       {block.places.length === 0 && (
-        <p className="muted">{editing ? '还没有备选，点“添加备选”开始。' : '还没有备选。切换到编辑模式可以添加。'}</p>
+        <p className="muted">{editing ? '还没有详情，点击右上角“添加详情”开始。' : '还没有详情。切换到编辑模式可以添加。'}</p>
       )}
       <div className="place-list">
         {block.places.map((p, k) => (
@@ -156,6 +175,7 @@ export default function DetailPage() {
             key={p.id}
             place={p}
             readOnly={!editing}
+            startEditing={false}
             onChange={(next) => setPlace(k, next)}
             onRemove={() => setBlock({ places: block.places.filter((_, j) => j !== k) })}
           />
