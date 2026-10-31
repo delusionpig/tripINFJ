@@ -86,17 +86,17 @@ export function normalize(p: Plan | null): Plan | null {
   return { ...p, days }
 }
 
-export function loadPlan(): Plan | null {
+export function loadPlan(id = 'main'): Plan | null {
   try {
-    return normalize(JSON.parse(localStorage.getItem(KEY) ?? 'null') as Plan | null)
+    return normalize(JSON.parse(localStorage.getItem(`${KEY}.${id}`) ?? 'null') as Plan | null)
   } catch {
     return null
   }
 }
 
-export function savePlan(plan: Plan) {
+export function savePlan(plan: Plan, id = 'main') {
   try {
-    localStorage.setItem(KEY, JSON.stringify(plan))
+    localStorage.setItem(`${KEY}.${id}`, JSON.stringify(plan))
   } catch {
     // storage full or blocked: keep working in memory
   }

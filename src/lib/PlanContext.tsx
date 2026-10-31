@@ -1,14 +1,15 @@
 import {
   createContext, useContext, useEffect, useRef, useState,
-  type Dispatch, type ReactNode, type SetStateAction,
+  type Dispatch, type ReactNode,
 } from 'react'
 import { fetchPlan, pushPlan } from './remote'
 import { loadPlan, savePlan, type Plan } from './plan'
+import { bangkokPlan } from './bangkok'
 
 export type Sync = 'loading' | 'saving' | 'saved' | 'error'
 type Ctx = {
   plan: Plan | null
-  update: Dispatch<SetStateAction<Plan | null>>
+  update: Dispatch<React.SetStateAction<Plan | null>>
   sync: Sync
   editing: boolean
   setEditing: (v: boolean) => void
@@ -16,38 +17,43 @@ type Ctx = {
 
 const PlanCtx = createContext<Ctx | null>(null)
 
-export function PlanProvider({ children }: { children: ReactNode }) {
-  const [plan, setPlan] = useState<Plan | null>(loadPlan)
+export function PlanProvider({ children, planId = 'main' }: { children: ReactNode; planId?: string }) {
+  const isBangkok = planId.startsWith('bangkok')
+  const initial = isBangkok ? bangkokPlan : null
+  const [plan, setPlan] = useState<Plan | null>(() => isBangkok ? initial : loadPlan(planId))
   const [editing, setEditing] = useState(false)
   const [sync, setSync] = useState<Sync>('loading')
   const [ready, setReady] = useState(false)
   const edited = useRef(false)
 
-  // Cloud is the source of truth once it loads; until then (or if it fails) local data is used.
   useEffect(() => {
-    fetchPlan()
+    setReady(false)
+    edited.current = false
+    setPlan(isBangkok ? bangkokPlan : loadPlan(planId))
+    fetchPlan(planId)
       .then((remote) => {
-        if (remote) setPlan(remote)
+        if (isBangkok) {
+          setPlan(bangkokPlan)
+          if (!remote) pushPlan(bangkokPlan, planId).catch(() => setSync('error'))
+        } else if (remote) setPlan(remote)
         setReady(true)
         setSync('saved')
       })
       .catch(() => setSync('error'))
-  }, [])
+  }, [planId])
 
-  // Local mirror always; cloud only after the first fetch succeeded (a failed load must not
-  // overwrite cloud data) and only for changes the user made (browsing never writes).
   useEffect(() => {
     if (!plan) return
-    savePlan(plan)
+    savePlan(plan, planId)
     if (!ready || !edited.current) return
     setSync('saving')
     const t = setTimeout(() => {
-      pushPlan(plan)
+      pushPlan(plan, planId)
         .then(() => setSync('saved'))
         .catch(() => setSync('error'))
     }, 800)
     return () => clearTimeout(t)
-  }, [plan, ready])
+  }, [plan, ready, planId])
 
   const update: Ctx['update'] = (next) => {
     edited.current = true

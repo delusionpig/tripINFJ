@@ -1,18 +1,66 @@
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { isUrl, mergeNext, split, timeLabel, type Block } from '../lib/plan'
 
 type Props = { blocks: Block[]; date: string; readOnly: boolean; onChange: (blocks: Block[]) => void }
+type EmptyGroup = { start: number; end: number; key: string }
+
+const hasContent = (b: Block) => Boolean(b.event.trim() || b.link.trim() || b.note.trim() || b.places.length)
+const pad = (n: number) => String(n).padStart(2, '0')
+
+function emptyGroups(blocks: Block[]): EmptyGroup[] {
+  const groups: EmptyGroup[] = []
+  let start = -1
+  for (let i = 0; i <= blocks.length; i += 1) {
+    const empty = i < blocks.length && !hasContent(blocks[i])
+    if (empty && start < 0) start = i
+    if (!empty && start >= 0) {
+      groups.push({ start, end: i - 1, key: `${blocks[start].id}-${blocks[i - 1].id}` })
+      start = -1
+    }
+  }
+  return groups
+}
+
+function groupLabel(blocks: Block[], group: EmptyGroup) {
+  const from = blocks.slice(0, group.start).reduce((sum, b) => sum + b.span, 0)
+  const hours = blocks.slice(group.start, group.end + 1).reduce((sum, b) => sum + b.span, 0)
+  return `${pad(from)}:00–${pad(from + hours)}:00`
+}
 
 export default function DayTable({ blocks, date, readOnly, onChange }: Props) {
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
+  const location = useLocation()
+  const detailBase = location.pathname.startsWith('/bangkok') ? '/bangkok/day' : '/day'
+  const groups = emptyGroups(blocks)
+  const groupFor = (i: number) => groups.find((group) => group.start <= i && i <= group.end)
   const edit = (i: number, patch: Partial<Block>) =>
     onChange(blocks.map((b, j) => (j === i ? { ...b, ...patch } : b)))
+  const toggle = (key: string) =>
+    setCollapsed((current) => {
+      const next = new Set(current)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  const allCollapsed = groups.length > 0 && groups.every((group) => collapsed.has(group.key))
+  const toggleAll = () => setCollapsed(allCollapsed ? new Set() : new Set(groups.map((group) => group.key)))
 
   return (
     <div className="table-wrap">
       <table className="day-table">
         <thead>
           <tr>
-            <th>时间</th>
+            <th>
+              <div className="time-heading">
+                <span>时间</span>
+                {groups.length > 0 && (
+                  <button type="button" className="mini" onClick={toggleAll} aria-expanded={!allCollapsed}>
+                    {allCollapsed ? '展开空白时段' : '收起空白时段'}
+                  </button>
+                )}
+              </div>
+            </th>
             <th>事件</th>
             <th>链接</th>
             <th>备注</th>
@@ -20,26 +68,45 @@ export default function DayTable({ blocks, date, readOnly, onChange }: Props) {
         </thead>
         <tbody>
           {blocks.flatMap((b, i) => {
+            const group = groupFor(i)
+            if (group && collapsed.has(group.key)) {
+              if (i !== group.start) return []
+              return (
+                <tr key={group.key} className="collapsed-row">
+                  <td colSpan={4}>
+                    <div className="collapsed-time">
+                      <span>{groupLabel(blocks, group)}</span>
+                      <button type="button" className="mini" onClick={() => toggle(group.key)} aria-expanded="false">
+                        展开空白时段
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              )
+            }
+
             const label = timeLabel(blocks, i)
-            const detail = `/day/${date}/${encodeURIComponent(b.id)}`
+            const detail = `${detailBase}/${date}/${encodeURIComponent(b.id)}`
             const rows = [
               <tr key={b.id}>
                 <td rowSpan={b.span} className="time-cell">
                   <div>{label}</div>
-                  {!readOnly && (
-                    <div className="cell-actions">
-                      {i < blocks.length - 1 && (
-                        <button type="button" className="mini" onClick={() => onChange(mergeNext(blocks, i))}>
-                          合并下一格
-                        </button>
-                      )}
-                      {b.span > 1 && (
-                        <button type="button" className="mini" onClick={() => onChange(split(blocks, i))}>
-                          拆分
-                        </button>
-                      )}
-                    </div>
-                  )}
+                  <div className="cell-actions">
+                    {!readOnly && (
+                      <>
+                        {i < blocks.length - 1 && (
+                          <button type="button" className="mini" onClick={() => onChange(mergeNext(blocks, i))}>
+                            合并下一格
+                          </button>
+                        )}
+                        {b.span > 1 && (
+                          <button type="button" className="mini" onClick={() => onChange(split(blocks, i))}>
+                            拆分
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </td>
                 <td rowSpan={b.span}>
                   {readOnly ? (

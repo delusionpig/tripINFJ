@@ -33,8 +33,9 @@ export default function PlanPage() {
   return (
     <section>
       <div className="row">
-        <h1>
-          {plan.start} → {plan.end}
+        <h1 className="date-heading">
+          <span className="calendar-icon" aria-hidden="true" />
+          <span>{plan.start} → {plan.end}</span>
         </h1>
         {editing && (
           <button type="button" className="btn btn-ghost" onClick={() => setPicking(true)}>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { uploadImage } from '../lib/images'
 import { usePlan } from '../lib/PlanContext'
 import { isUrl, newPlace, timeLabel, type Block, type Place } from '../lib/plan'
@@ -34,9 +34,15 @@ function PlaceCard({ place, readOnly, startEditing = false, onChange, onRemove }
 
   const images = place.images.map((src, i) => (
     <figure key={src} className="thumb">
-      <a href={src} target="_blank" rel="noopener noreferrer">
-        <img src={src} alt={`${place.name || '详情'} 图片 ${i + 1}`} loading="lazy" />
-      </a>
+      <img
+        src={src}
+        alt={`${place.name || '详情'} 图片 ${i + 1}`}
+        loading="lazy"
+        onError={(event) => {
+          event.currentTarget.hidden = true
+          event.currentTarget.parentElement?.classList.add('thumb-unavailable')
+        }}
+      />
       {isEditing && (
         <button
           type="button"
@@ -131,6 +137,8 @@ function PlaceCard({ place, readOnly, startEditing = false, onChange, onRemove }
 
 export default function DetailPage() {
   const { date = '', id = '' } = useParams()
+  const location = useLocation()
+  const planPath = location.pathname.startsWith('/bangkok') ? '/bangkok' : '/plan'
   const { plan, update, editing } = usePlan()
   const blocks = plan?.days[date]
   const i = blocks?.findIndex((b) => b.id === id) ?? -1
@@ -139,7 +147,7 @@ export default function DetailPage() {
     return (
       <section>
         <p className="muted">找不到这个时间段，可能已被合并或删除。</p>
-        <Link to="/" className="btn btn-ghost">返回行程</Link>
+        <Link to={planPath} className="btn btn-ghost">返回行程</Link>
       </section>
     )
   }
@@ -152,7 +160,7 @@ export default function DetailPage() {
   return (
     <section>
       <div className="row">
-        <Link to="/" className="btn btn-ghost">← 返回行程</Link>
+        <Link to={planPath} className="btn btn-ghost">← 返回行程</Link>
         <span className="muted">{date} {timeLabel(blocks, i)}</span>
       </div>
       <h1>{block.event || '未命名事件'}</h1>
