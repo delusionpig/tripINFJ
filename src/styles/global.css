@@ -126,7 +126,12 @@ input:focus-visible, textarea:focus-visible, .btn:focus-visible, a:focus-visible
 .cell-link { color: var(--primary); font-weight: 600; text-decoration: none; display: block; padding: 6px 8px; }
 .cell-link:hover { text-decoration: underline; }
 .badge { margin-left: 8px; padding: 1px 8px; border-radius: 999px; background: var(--rose); color: var(--text); font-weight: 400; }
-.detail-link { display: inline-block; margin: 2px 0 0 10px; font-size: 0.85rem; color: var(--primary); }
+.detail-link {
+  display: inline-block; margin: 6px 0 2px; padding: 5px 10px; border: 1px solid var(--primary);
+  border-radius: 999px; color: var(--primary); font-size: 0.8rem; text-decoration: none;
+  background: var(--surface); font-weight: 600;
+}
+.detail-link:hover { background: var(--primary-soft); }
 .cell-text { display: block; padding: 6px 8px; white-space: pre-wrap; overflow-wrap: anywhere; }
 
 .detail-head { margin-top: 24px; }

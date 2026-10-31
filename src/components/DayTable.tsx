@@ -54,12 +54,13 @@ export default function DayTable({ blocks, date, readOnly, onChange }: Props) {
                       <textarea
                         rows={b.span}
                         aria-label={`${label} 事件`}
+                        placeholder="编辑事件文字"
                         value={b.event}
                         onChange={(e) => edit(i, { event: e.target.value })}
                       />
                       {b.event.trim() && (
                         <Link to={detail} className="detail-link">
-                          详情{b.places.length > 0 ? `（${b.places.length}）` : ''} →
+                          打开详情{b.places.length > 0 ? `（${b.places.length} 个备选）` : ''} →
                         </Link>
                       )}
                     </>
