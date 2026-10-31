@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import { isValid, type Plan } from './plan'
+import { normalize, type Plan } from './plan'
 
 // Single-user version: one fixed row holds the whole plan.
 const ID = 'main'
@@ -7,7 +7,7 @@ const ID = 'main'
 export async function fetchPlan(): Promise<Plan | null> {
   const { data, error } = await supabase.from('trip_plans').select('data').eq('id', ID).maybeSingle()
   if (error) throw error
-  return data && isValid(data.data as Plan) ? (data.data as Plan) : null
+  return data ? normalize(data.data as Plan) : null
 }
 
 export async function pushPlan(plan: Plan) {
