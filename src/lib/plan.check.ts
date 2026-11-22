@@ -1,4 +1,5 @@
 import { buildPlan, dateRange, emptyDay, mergeNext, split } from './plan.ts'
+import { planWorkbook } from './planExcel.ts'
 
 // Run: npm run check
 const ok = (cond: boolean, msg: string) => {
@@ -25,5 +26,10 @@ const p1 = buildPlan('2026-10-30', '2026-11-01')
 p1.days['2026-11-01'][0].event = 'keep'
 const p2 = buildPlan('2026-10-30', '2026-10-31', p1)
 ok(p2.days['2026-11-01'][0].event === 'keep', 'shrinking range keeps data')
+
+p2.days['2026-10-30'] = merged
+const workbook = await planWorkbook(p2).toBlob()
+const signature = new Uint8Array(await workbook.slice(0, 4).arrayBuffer())
+ok(signature.join() === '80,75,3,4', 'Excel export produces a ZIP workbook')
 
 console.log('plan checks passed')

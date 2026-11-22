@@ -8,6 +8,8 @@ export default function PlanPage() {
   const { plan, update, sync, editing } = usePlan()
   const [picking, setPicking] = useState(false)
   const [active, setActive] = useState(0)
+  const [exporting, setExporting] = useState(false)
+  const [exportError, setExportError] = useState(false)
 
   if (!plan && sync === 'loading') return <p className="muted">加载中…</p>
 
@@ -29,6 +31,18 @@ export default function PlanPage() {
   const dates = dateRange(plan.start, plan.end)
   const date = dates[Math.min(active, dates.length - 1)]
   const setBlocks = (blocks: Block[]) => update({ ...plan, days: { ...plan.days, [date]: blocks } })
+  const download = async () => {
+    setExporting(true)
+    setExportError(false)
+    try {
+      const { exportPlan } = await import('../lib/planExcel')
+      await exportPlan(plan)
+    } catch {
+      setExportError(true)
+    } finally {
+      setExporting(false)
+    }
+  }
 
   return (
     <section>
@@ -37,12 +51,18 @@ export default function PlanPage() {
           <span className="calendar-icon" aria-hidden="true" />
           <span>{plan.start} → {plan.end}</span>
         </h1>
-        {editing && (
-          <button type="button" className="btn btn-ghost" onClick={() => setPicking(true)}>
-            重新选择日期
+        <div className="plan-actions">
+          {editing && (
+            <button type="button" className="btn btn-ghost" onClick={() => setPicking(true)}>
+              重新选择日期
+            </button>
+          )}
+          <button type="button" className="btn btn-ghost" onClick={download} disabled={exporting}>
+            {exporting ? '正在导出…' : '导出 Excel'}
           </button>
-        )}
+        </div>
       </div>
+      {exportError && <p className="error" role="alert">Excel 导出失败，请重试。</p>}
       <div role="tablist" aria-label="行程日期" className="day-tabs">
         {dates.map((d, i) => (
           <button
