@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
+import { usePlan } from '../lib/PlanContext'
 import { mergeNext, split, timeLabel, type Block } from '../lib/plan'
 
 type Props = { blocks: Block[]; date: string; readOnly: boolean; onChange: (blocks: Block[]) => void }
@@ -30,8 +31,8 @@ function groupLabel(blocks: Block[], group: EmptyGroup) {
 
 export default function DayTable({ blocks, date, readOnly, onChange }: Props) {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
-  const location = useLocation()
-  const detailBase = location.pathname.startsWith('/bangkok') ? '/bangkok/day' : '/day'
+  const { planPath } = usePlan()
+  const detailBase = `${planPath}/day`
   const groups = emptyGroups(blocks)
   const groupFor = (i: number) => groups.find((group) => group.start <= i && i <= group.end)
   const edit = (i: number, patch: Partial<Block>) =>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useLocation, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { uploadImage } from '../lib/images'
 import { usePlan } from '../lib/PlanContext'
 import { isUrl, newPlace, timeLabel, type Block, type Place } from '../lib/plan'
@@ -137,9 +137,7 @@ function PlaceCard({ place, readOnly, startEditing = false, onChange, onRemove }
 
 export default function DetailPage() {
   const { date = '', id = '' } = useParams()
-  const location = useLocation()
-  const planPath = location.pathname.startsWith('/bangkok') ? '/bangkok' : '/plan'
-  const { plan, update, editing } = usePlan()
+  const { plan, planPath, update, editing } = usePlan()
   const blocks = plan?.days[date]
   const i = blocks?.findIndex((b) => b.id === id) ?? -1
 

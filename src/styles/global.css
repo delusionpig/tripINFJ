@@ -187,7 +187,13 @@ input:focus-visible, textarea:focus-visible, .btn:focus-visible, a:focus-visible
 .destination-action { margin-top: 12px; padding: 7px 13px; border: 1px solid rgba(255,255,255,.8); border-radius: 999px; font-size: .85rem; }
 .destination-soon { border-color: rgba(255,255,255,.45); color: rgba(255,255,255,.8); }
 
+.destination-group { min-width: 0; }
+.destination-plans { display: grid; gap: 10px; margin-top: 14px; }
+.destination-plans .trip-card { padding: 16px; }
+.destination-group .destination-tile { cursor: default; }
+
 @media (max-width: 640px) {
+  .destination-back-row { justify-content: flex-start; padding-left: 0; }
   .destination-grid { grid-template-columns: 1fr; gap: 14px; }
   .destination-tile { aspect-ratio: 5 / 3; }
   .destination-copy { inset: auto 18px 16px; }

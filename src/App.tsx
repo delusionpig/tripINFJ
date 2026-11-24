@@ -7,13 +7,16 @@ import PlanPage from './pages/PlanPage'
 
 function PlanRoutes() {
   const location = useLocation()
-  const planId = location.pathname.startsWith('/bangkok') ? 'bangkok' : 'main'
+  const match = location.pathname.match(/^\/plans\/([^/]+)/)
+  const planId = match ? decodeURIComponent(match[1]) : location.pathname.startsWith('/bangkok') ? 'bangkok' : 'main'
   return (
     <PlanProvider planId={planId}>
       <Routes>
         <Route element={<Layout />}>
           <Route path="/" element={<DestinationPage />} />
-          <Route path="/plan" element={<PlanPage />} />
+          <Route path="/plans/:planId" element={<PlanPage key={planId} />} />
+          <Route path="/plans/:planId/day/:date/:id" element={<DetailPage />} />
+          <Route path="/plan" element={<PlanPage key={planId} />} />
           <Route path="/bangkok" element={<PlanPage />} />
           <Route path="/day/:date/:id" element={<DetailPage />} />
           <Route path="/bangkok/day/:date/:id" element={<DetailPage />} />

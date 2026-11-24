@@ -1,5 +1,6 @@
 import { buildPlan, dateRange, emptyDay, mergeNext, split } from './plan.ts'
 import { planWorkbook } from './planExcel.ts'
+import { addTrip, coversDates, validCatalog, type Catalog } from './catalog.ts'
 
 // Run: npm run check
 const ok = (cond: boolean, msg: string) => {
@@ -31,5 +32,23 @@ p2.days['2026-10-30'] = merged
 const workbook = await planWorkbook(p2).toBlob()
 const signature = new Uint8Array(await workbook.slice(0, 4).arrayBuffer())
 ok(signature.join() === '80,75,3,4', 'Excel export produces a ZIP workbook')
+
+ok(coversDates(p2, '2026-10-29', '2026-11-02'), 'extension keeps original dates')
+ok(coversDates(p2, p2.start, p2.end), 'unchanged dates keep plan')
+ok(!coversDates(p2, '2026-10-31', '2026-11-02'), 'shift requires a new plan')
+ok(!coversDates(p2, '2026-10-30', '2026-10-30'), 'shortening requires a new plan')
+let catalog: Catalog = []
+for (let i = 0; i < 4; i++) catalog = addTrip(catalog, 'japan', p2)
+ok(validCatalog(catalog), 'four plans form a valid catalog')
+let blocked = false
+try { addTrip(catalog, 'japan') } catch { blocked = true }
+ok(blocked, 'fifth plan rejected')
+const deleted = catalog[1].id
+catalog = catalog.filter((trip) => trip.id !== deleted)
+catalog = addTrip(catalog, 'japan')
+ok(catalog.length === 4 && !catalog.some((trip) => trip.id === deleted), 'deletion frees slot without resurrecting plan')
+catalog = addTrip(catalog, 'thailand')
+ok(validCatalog(catalog), 'destinations have independent limits')
+ok(!validCatalog([...catalog, catalog[0]]), 'duplicate plans rejected')
 
 console.log('plan checks passed')
