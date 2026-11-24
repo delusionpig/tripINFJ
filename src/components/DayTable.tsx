@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { isUrl, mergeNext, split, timeLabel, type Block } from '../lib/plan'
+import { mergeNext, split, timeLabel, type Block } from '../lib/plan'
 
 type Props = { blocks: Block[]; date: string; readOnly: boolean; onChange: (blocks: Block[]) => void }
 type EmptyGroup = { start: number; end: number; key: string }
 
-const hasContent = (b: Block) => Boolean(b.event.trim() || b.link.trim() || b.note.trim() || b.places.length)
+const hasContent = (b: Block) => Boolean(b.event.trim() || b.note.trim() || b.places.length)
 const pad = (n: number) => String(n).padStart(2, '0')
 
 function emptyGroups(blocks: Block[]): EmptyGroup[] {
@@ -62,7 +62,6 @@ export default function DayTable({ blocks, date, readOnly, onChange }: Props) {
               </div>
             </th>
             <th>事件</th>
-            <th>链接</th>
             <th>备注</th>
           </tr>
         </thead>
@@ -73,7 +72,7 @@ export default function DayTable({ blocks, date, readOnly, onChange }: Props) {
               if (i !== group.start) return []
               return (
                 <tr key={group.key} className="collapsed-row">
-                  <td colSpan={4}>
+                  <td colSpan={3}>
                     <div className="collapsed-time">
                       <span>{groupLabel(blocks, group)}</span>
                       <button type="button" className="mini" onClick={() => toggle(group.key)} aria-expanded="false">
@@ -129,32 +128,6 @@ export default function DayTable({ blocks, date, readOnly, onChange }: Props) {
                         <Link to={detail} className="detail-link">
                           打开详情{b.places.length > 0 ? `（${b.places.length} 个详情）` : ''} →
                         </Link>
-                      )}
-                    </>
-                  )}
-                </td>
-                <td rowSpan={b.span}>
-                  {readOnly ? (
-                    isUrl(b.link) ? (
-                      <a href={b.link.trim()} target="_blank" rel="noopener noreferrer" className="cell-text">
-                        打开链接
-                      </a>
-                    ) : (
-                      <span className="cell-text">{b.link}</span>
-                    )
-                  ) : (
-                    <>
-                      <input
-                        type="text"
-                        inputMode="url"
-                        aria-label={`${label} 链接`}
-                        value={b.link}
-                        onChange={(e) => edit(i, { link: e.target.value })}
-                      />
-                      {isUrl(b.link) && (
-                        <a href={b.link.trim()} target="_blank" rel="noopener noreferrer">
-                          打开
-                        </a>
                       )}
                     </>
                   )}
