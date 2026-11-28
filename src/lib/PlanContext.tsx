@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, type Dispatch, type ReactNode } from 'react'
 import { fetchCatalog, fetchPlan, pushCatalog } from './remote'
 import { normalize, type Plan } from './plan'
-import { addTrip, CATALOG_KEY, initialCatalog, validCatalog, type Catalog, type Destination } from './catalog'
+import { addTrip, CATALOG_KEY, initialCatalog, mergeDefaultTrips, validCatalog, type Catalog, type Destination } from './catalog'
 
 export type Sync = 'loading' | 'saving' | 'saved' | 'error'
 type Ctx = {
@@ -23,7 +23,7 @@ function loadCatalog() {
     const value: unknown = JSON.parse(localStorage.getItem(CATALOG_KEY) ?? 'null')
     if (validCatalog(value)) {
       const result = value.map((trip) => ({ ...trip, plan: trip.plan === null ? null : normalize(trip.plan) }))
-      if (value.every((trip, i) => trip.plan === null || result[i].plan !== null)) return result
+      if (value.every((trip, i) => trip.plan === null || result[i].plan !== null)) return mergeDefaultTrips(result)
     }
   } catch { /* Fall back to existing single-plan storage. */ }
   return initialCatalog()
@@ -65,13 +65,16 @@ export function PlanProvider({ children, planId = 'main' }: { children: ReactNod
         const [main, bangkok] = await Promise.all([fetchPlan('main'), fetchPlan('bangkok')])
         if (canceled) return
         if (!pending.current && revision.current === version) {
-          store(current.current.map((trip) => ({ ...trip,
+          store(mergeDefaultTrips(current.current.map((trip) => ({ ...trip,
             plan: trip.id === 'main' ? main ?? trip.plan : trip.id === 'bangkok' ? bangkok ?? trip.plan : trip.plan,
-          })), true)
+          }))), true)
         } else pending.current = true
       } else {
         if (canceled) return
-        if (!pending.current && revision.current === version) store(remote, false)
+        if (!pending.current && revision.current === version) {
+          const merged = mergeDefaultTrips(remote)
+          store(merged, merged.length !== remote.length)
+        }
       }
       if (!canceled) {
         setReady(true)

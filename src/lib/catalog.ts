@@ -45,6 +45,17 @@ export function initialCatalog(): Catalog {
   ]
 }
 
+/** Add shipped starter trips only when that destination has no saved trip. */
+export function mergeDefaultTrips(catalog: Catalog): Catalog {
+  let result = catalog
+  for (const starter of initialCatalog().filter((trip) => trip.destination === 'singapore' || trip.destination === 'malaysia')) {
+    if (!result.some((trip) => trip.destination === starter.destination) && result.filter((trip) => trip.destination === starter.destination).length < MAX_PLANS) {
+      result = [...result, { ...starter }]
+    }
+  }
+  return result
+}
+
 export function addTrip(catalog: Catalog, destination: Destination, plan: Plan | null = null): Catalog {
   const trips = catalog.filter((trip) => trip.destination === destination)
   if (trips.length >= MAX_PLANS) throw new Error('每个目的地最多 4 个计划，请先删除一个计划。')

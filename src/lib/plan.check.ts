@@ -1,6 +1,6 @@
 import { buildPlan, dateRange, emptyDay, mergeNext, split } from './plan.ts'
 import { planWorkbook } from './planExcel.ts'
-import { addTrip, coversDates, validCatalog, type Catalog } from './catalog.ts'
+import { addTrip, coversDates, mergeDefaultTrips, validCatalog, initialCatalog, type Catalog } from './catalog.ts'
 
 // Run: npm run check
 const ok = (cond: boolean, msg: string) => {
@@ -50,5 +50,12 @@ ok(catalog.length === 4 && !catalog.some((trip) => trip.id === deleted), 'deleti
 catalog = addTrip(catalog, 'thailand')
 ok(validCatalog(catalog), 'destinations have independent limits')
 ok(!validCatalog([...catalog, catalog[0]]), 'duplicate plans rejected')
+
+const migrated = mergeDefaultTrips(catalog)
+ok(migrated.some((trip) => trip.destination === 'singapore') && migrated.some((trip) => trip.destination === 'malaysia'), 'missing starter destinations are added')
+const userSingapore = { ...initialCatalog().find((trip) => trip.destination === 'singapore')!, id: 'user-sg', number: 2 }
+const preserved = mergeDefaultTrips([...catalog, userSingapore])
+ok(preserved.filter((trip) => trip.destination === 'singapore').length === 1 && preserved.some((trip) => trip.id === 'user-sg'), 'existing destination plan is preserved without duplicate')
+ok(mergeDefaultTrips(migrated).length === migrated.length, 'migration is idempotent')
 
 console.log('plan checks passed')
