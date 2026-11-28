@@ -18,6 +18,8 @@ const destinations = [
     image: 'https://images.unsplash.com/photo-1558847345-289a92f80ddb?auto=format&fit=crop&w=1600&q=85',
     imageAlt: '曼谷湄南河沿岸城市景色',
   },
+  { id: 'singapore', name: '新加坡', city: '新加坡市', image: 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?auto=format&fit=crop&w=1600&q=85', imageAlt: '新加坡滨海湾城市景色' },
+  { id: 'malaysia', name: '马来西亚', city: '吉隆坡', image: 'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?auto=format&fit=crop&w=1600&q=85', imageAlt: '吉隆坡城市天际线' },
 ]
 
 export default function DestinationPage() {
